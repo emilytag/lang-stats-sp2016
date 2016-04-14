@@ -5,20 +5,6 @@ TO - DO
 -Set up a classifier
 
 
-
-
-
-
-Language &amp; Statistics Project Group
-
-higher order n-grams: http://ceur-ws.org/Vol-377/paper4.pdf
-
-lstms: couldn't find
-
-(what were the other methods we discussed?)
-
-
-
 FIRST MEETING IDEAS
 ------------------
 
@@ -43,4 +29,4 @@ SECOND MEETING IDEAS
 ----------------
 
 1. Set up pipeline for classification and feature generation
-2. use 90's tooliit to build higher order n-gram from the training data a compute the model's perplexity to the validation data. find a threshlold to decie whether it is human/machine generated text.
+2. use 90's tooliit to build higher order n-gram from the training data a compute the model's perplexity to the validation data. find a threshlold to decie whether it is human/machine generated text. (more or less this http://ceur-ws.org/Vol-377/paper4.pdf)
