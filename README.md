@@ -35,10 +35,11 @@ SECOND MEETING IDEAS
 3. Possible features - train different language models (higher-order n-grams is one option), stop words, parse subtrees, part-of-speech, word vectors, term frequencies, ground clusters. 
 
 
-Work division
-Dan - Sampling, ground clusters
-Elliot - Parse trees
-Aman - part-of-speech
-Joana - Roni's toolkit - higher order n-grams.
-Emily - n-grams, classification script
+WORK DIVISION
+---------------
+1. Dan - Sampling, ground clusters
+2. Elliot - Parse trees
+3. Aman - part-of-speech
+4. Joana - Roni's toolkit - higher order n-grams.
+5. Emily - n-grams, classification script
 
