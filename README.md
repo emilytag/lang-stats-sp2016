@@ -16,3 +16,4 @@ FIRST MEETING IDEAS
 2. Train n-gram models on the 100 million word corpus to find "true" distributions. Then, calculate cross entropy of real and fake articles n-gram distributions and use the value as a feature
 3. LSTM after samplinf from the 100 million word corpus
 4. Word vectors as features
+5. Capture longer-range dependencies that n-grams can manage
