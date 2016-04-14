@@ -16,4 +16,11 @@ FIRST MEETING IDEAS
 2. Train n-gram models on the 100 million word corpus to find "true" distributions. Then, calculate cross entropy of real and fake articles n-gram distributions and use the value as a feature
 3. LSTM after samplinf from the 100 million word corpus
 4. Word vectors as features
-5. Capture longer-range dependencies that n-grams can manage
+5. Capture richer word dependencies that n-grams can manage
+
+
+AMAN's THOUGHTS
+----------------
+1. POS tagging might lead to different distributions of tags for real and fake articles (although I am not very confident about this).
+2. Distribution of n-grams (n>3) might be different for real and fake articles
+3. Since most of the articles in development are a few sentences long, we should think of sentence-level features. Syntactical parsing of some kind might leas to different results for real and fake articles.
