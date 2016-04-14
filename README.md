@@ -25,8 +25,20 @@ AMAN's THOUGHTS
 RONI's TOOLKIT - http://www.speech.cs.cmu.edu/SLM/toolkit.html
 
 
+
+
 SECOND MEETING IDEAS
 ----------------
 
 1. Set up pipeline for classification and feature generation
-2. use 90's tooliit to build higher order n-gram from the training data a compute the model's perplexity to the validation data. find a threshlold to decie whether it is human/machine generated text. (more or less this http://ceur-ws.org/Vol-377/paper4.pdf)
+2. use 90's tooliit to build higher order n-gram from the training data a compute the model's perplexity to the validation data. find a threshlold to decie whether it is human/machine generated text.
+3. Possible features - train different language models (higher-order n-grams is one option), stop words, parse subtrees, part-of-speech, word vectors, term frequencies, ground clusters. 
+
+
+Work division
+Dan - Sampling, ground clusters
+Elliot - Parse trees
+Aman - part-of-speech
+Joana - Roni's toolkit - higher order n-grams.
+Emily - n-grams, classification script
+
