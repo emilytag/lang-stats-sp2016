@@ -34,3 +34,6 @@ AMAN's THOUGHTS
 1. POS tagging might lead to different distributions of tags for real and fake articles (although I am not very confident about this).
 2. Distribution of n-grams (n>3) might be different for real and fake articles
 3. Since most of the articles in development are a few sentences long, we should think of sentence-level features. Syntactical parsing of some kind might leas to different results for real and fake articles.
+
+
+RONI's TOOLKIT - http://www.speech.cs.cmu.edu/SLM/toolkit.html
