@@ -1,4 +1,9 @@
 # lang-stats-sp2016
+TO - DO
+------------------
+-Take a look at Roni's toolkit
+-Set up a classifier
+
 Language &amp; Statistics Project Group
 
 higher order n-grams: http://ceur-ws.org/Vol-377/paper4.pdf
