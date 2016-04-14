@@ -43,4 +43,4 @@ SECOND MEETING IDEAS
 ----------------
 
 1. Set up pipeline for classification and feature generation
-2. 
+2. use 90's tooliit to build higher order n-gram from the training data a compute the model's perplexity to the validation data. find a threshlold to decie whether it is human/machine generated text.
