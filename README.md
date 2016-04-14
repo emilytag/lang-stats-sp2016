@@ -37,3 +37,10 @@ AMAN's THOUGHTS
 
 
 RONI's TOOLKIT - http://www.speech.cs.cmu.edu/SLM/toolkit.html
+
+
+SECOND MEETING IDEAS
+----------------
+
+1. Set up pipeline for classification and feature generation
+2. 
