@@ -1,8 +1,4 @@
 # lang-stats-sp2016
-TO - DO
-------------------
--Take a look at Roni's toolkit
--Set up a classifier
 
 
 FIRST MEETING IDEAS
@@ -26,7 +22,6 @@ RONI's TOOLKIT - http://www.speech.cs.cmu.edu/SLM/toolkit.html
 
 
 
-
 SECOND MEETING IDEAS
 ----------------
 
@@ -42,6 +37,14 @@ WORK DIVISION
 3. Aman - part-of-speech
 4. Joana - Roni's toolkit - higher order n-grams.
 5. Emily - n-grams, classification script
+
+TO DO
+---------------
+1. Elliot - Look into ZPar
+2. Joana - Send scripts to run on servers
+3. Emily - Integrate the toolkit Joana is using into Classifier script, run 6gram on LOR
+4. Dan - Try to speed up sampling
+
 
 
 Word similarity paper : https://pdfs.semanticscholar.org/b705/2836c81e3c0d1802e76f1acee604d0d231c3.pdf
