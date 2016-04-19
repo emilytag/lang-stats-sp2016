@@ -2,6 +2,8 @@
 # Train n-gram LM
 # TODO: figure out the meaning of the smothing parameters in the lm training step
 
+# IMPORTANT: 
+# Put training and development data in the same folder as this script
 
 data_train=LM-train-100MW
 data_test=data_devel_false_1
