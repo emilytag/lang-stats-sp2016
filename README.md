@@ -43,3 +43,6 @@ WORK DIVISION
 4. Joana - Roni's toolkit - higher order n-grams.
 5. Emily - n-grams, classification script
 
+
+Word similarity paper : https://pdfs.semanticscholar.org/b705/2836c81e3c0d1802e76f1acee604d0d231c3.pdf
+
