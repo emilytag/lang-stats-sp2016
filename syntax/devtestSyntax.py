@@ -36,7 +36,7 @@ def buildSubtrees(tree):
 def readfile(docFilename):
     docs = []
     count = 0
-    procFilename = docFilename.replace(".dat", ".txt")
+    procFilename = "syntax/" + docFilename.replace(".dat", ".txt")
     with open(docFilename) as docfile, open(procFilename, 'w') as trainingF:
         
         for line in docfile:
@@ -59,14 +59,16 @@ def generate(datFilename):
     scores = []
 
     inputfile = procFilename.replace(".txt", "parse.txt")
-    synfeatsfilename = "syn_feats_{0}.pkl".format(procFilename.replace(".txt", ""))
-    synScoreFilename = "syn_scores_{0}.pkl".format(procFilename.replace(".txt", ""))
+    procFilenamesub = procFilename.replace("syntax/", "")
+    synfeatsfilename = "syntax/syn_feats_{0}.pkl".format(procFilenamesub.replace(".txt", ""))
+    synScoreFilename = "syntax/syn_scores_{0}.pkl".format(procFilenamesub.replace(".txt", ""))
     if not os.path.isfile(synfeatsfilename):
 
         with open(inputfile, 'w') as inputF:
             proc = subprocess.Popen(["java", "-cp", "syntax/stanford-parser-full-2014-10-31/stanford-parser.jar", "edu.stanford.nlp.parser.lexparser.LexicalizedParser", "syntax/stanford-parser-full-2014-10-31/englishPCFG.ser.gz", procFilename], stdout=inputF)
             proc.wait()
-        with open("output_log_{0}".format(procFilename), "w") as logF, open(synfeatsfilename, "wb")  as synFile, open(synScoreFilename, "wb")  as scoresFile, open(inputfile) as zparFile:
+        with open("syntax/output_log_{0}".format(procFilenamesub), "w") as logF, open(synfeatsfilename, "wb")  as synFile, open(synScoreFilename, "wb")  as scoresFile, open(inputfile) as zparFile:
+        
             lstr = zparFile.read()
             docs = lstr.split("\n\n")
             for l in docs:

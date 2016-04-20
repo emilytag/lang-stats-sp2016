@@ -39,7 +39,7 @@ def buildSubtrees(tree):
 def generate():
     features = []
     scores = []
-    with open("output_log_{0}.txt".format(ver), "w") as logF, open(featureFilename.format(ver), "w")  as synFile, open(scoreFilename.format(ver), "w")  as scoresFile, open('zpar.txt') as zparFile:
+    with open("syntax/output_log_{0}.txt".format(ver), "w") as logF, open(featureFilename.format(ver), "w")  as synFile, open(scoreFilename.format(ver), "w")  as scoresFile, open('syntax/zpar.txt') as zparFile:
         for l in zparFile:
             if (l == "(NP (NNP ENDOFDOC))\n"):
                 if (len(features) > 0):
