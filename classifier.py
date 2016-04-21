@@ -17,7 +17,7 @@ class LogRegModel:
       featureSet = {}
       featureSet['article_len'] = len(article)
       fx_words = [word for word in article.split() if len(word) <= 4]
-      featureSet["fxwordcount"] = len(fx_words1)
+      featureSet["fxwordcount"] = len(fx_words)
       non_words = [word for word in article.split() if word.isalpha() != True]
       featureSet["nonwordcount"] = len(non_words)
       content_words = [word for word in article.split() if len(word) > 4]
