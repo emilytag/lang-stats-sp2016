@@ -60,5 +60,7 @@ Features to try:
 3. Percentage content words
 4. Variance in average length of sentences
 5. Doc2Vec/Word2Vec model : https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz
+6. Character-level relative frequency
+7. Word-level relative frequency (not sure about this)
 
 
