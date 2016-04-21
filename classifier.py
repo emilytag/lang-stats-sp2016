@@ -22,6 +22,7 @@ class LogRegModel:
       featureSet["nonwordcount"] = len(non_words)
       content_words = [word for word in article.split() if len(word) > 4]
       featureSet["contentwordcount"] = len(content_words) 
+      #FEATURES TO DO
       #unique words / total words
       featureSet.update(feats)
       #temp_output_file = open('test_sent.txt', "w")
@@ -55,10 +56,10 @@ def main():
   trainSyntaxFeats = trainSyntax.load()
 
   for i in range(0, len(train_data)):
-      
     feats = trainSyntaxFeats[i]
     #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats)
+    
   model.fitModel()
   dev_filename = 'developmentSet.dat'
   dev_data = open(dev_filename, 'r').read()
@@ -74,6 +75,6 @@ def main():
     pred = model.predict(dev_data[i], feats)
     if pred == dev_labels[i]:
       correct_preds += 1
-  print ("model accuracy:", float(correct_preds)/len(dev_labels))
+  print "model accuracy:", float(correct_preds)/len(dev_labels)
 
 main()
