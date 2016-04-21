@@ -49,3 +49,15 @@ TO DO
 
 Word similarity paper : https://pdfs.semanticscholar.org/b705/2836c81e3c0d1802e76f1acee604d0d231c3.pdf
 
+
+MEETING - APRIL 21, 2016
+-----------------------
+
+Features to try:
+
+1. Number of words over total number of words
+2. Percentage stop words
+3. Percentage content words
+4. Variance in average length of sentences
+
+
