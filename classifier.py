@@ -15,13 +15,14 @@ class LogRegModel:
 
     def extract_features(self, article, feats):
       featureSet = {}
-      featureSet['article_len'] = len(article)
+      featureSet['article_len'] = len(article.split())
       fx_words = [word for word in article.split() if len(word) <= 4]
       featureSet["fxwordcount"] = len(fx_words)
       non_words = [word for word in article.split() if word.isalpha() != True]
       featureSet["nonwordcount"] = len(non_words)
       content_words = [word for word in article.split() if len(word) > 4]
       featureSet["contentwordcount"] = len(content_words) 
+      #unique words / total words
       featureSet.update(feats)
       #temp_output_file = open('test_sent.txt', "w")
       #temp_output_file.write(article)
