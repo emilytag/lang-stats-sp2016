@@ -59,5 +59,6 @@ Features to try:
 2. Percentage stop words
 3. Percentage content words
 4. Variance in average length of sentences
+5. Doc2Vec/Word2Vec model : https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz
 
 
