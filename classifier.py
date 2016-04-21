@@ -23,7 +23,7 @@ class LogRegModel:
       content_words = [word for word in article.split() if len(word) > 4]
       featureSet["contentwordcount"] = len(content_words) 
       #FEATURES TO DO
-      #unique words / total words
+      featureSet["uniquewords"] = len(set(article.split()))/len(article.split())
       featureSet.update(feats)
       #temp_output_file = open('test_sent.txt', "w")
       #temp_output_file.write(article)
@@ -59,7 +59,7 @@ def main():
     feats = trainSyntaxFeats[i]
     #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats)
-    
+
   model.fitModel()
   dev_filename = 'developmentSet.dat'
   dev_data = open(dev_filename, 'r').read()
