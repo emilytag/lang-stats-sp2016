@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.feature_extraction import DictVectorizer
 import sys
 from syntax import trainSyntax, devtestSyntax
+import subprocess
 
 class LogRegModel:
     def __init__(self):
@@ -14,8 +15,17 @@ class LogRegModel:
 
     def extract_features(self, article, feats):
       featureSet = {}
-      featureSet['test'] = len(article)
+      featureSet['article_len'] = len(article)
+      fx_words = [word for word in article.split() if len(word) <= 4]
+      featureSet["fxwordcount"] = len(fx_words1)
+      non_words = [word for word in article.split() if word.isalpha() != True]
+      featureSet["nonwordcount"] = len(non_words)
+      content_words = [word for word in article.split() if len(word) > 4]
+      featureSet["contentwordcount"] = len(content_words) 
       featureSet.update(feats)
+      #temp_output_file = open('test_sent.txt', "w")
+      #temp_output_file.write(article)
+      #subprocess.call("ngram/ngram -ppl " + 'test_sent.txt' + " -order 4 -lm ngram/data_train.5.lm")
       return featureSet
 
     def learn(self, article, classification, feats):
