@@ -32,7 +32,7 @@ class LogRegModel:
       output = subprocess.check_output(command, shell=True)
       #print article.strip()
       #print output.strip()
-      ppl = re.search(r'ppl= \d*\.\d*', output)
+      ppl = re.search(r'ppl= \d*\.?\d*', output)
       featureSet["ppl-5"] = float(ppl.group().split('=')[1])
       return featureSet
 
