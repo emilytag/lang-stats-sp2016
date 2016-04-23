@@ -11,7 +11,6 @@ from sklearn.cross_validation import StratifiedKFold
 from sklearn.feature_selection import RFECV
 from sklearn.linear_model.randomized_l1 import RandomizedLogisticRegression
 from sklearn.ensemble.forest import RandomForestClassifier
-import datetime
 import pickle
 import nltk
 import itertools
@@ -19,6 +18,7 @@ from nltk.corpus import stopwords
 import os
 import re
 from _collections import defaultdict
+from datetime import datetime
 
 class LogRegModel:
     def __init__(self):
@@ -48,6 +48,7 @@ class LogRegModel:
       temp_output_file = open('test_sent.txt', "w")
       temp_output_file.write(article.strip()+"\n")
       temp_output_file.close()
+      
       try:
           command6gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'test_sent.txt' + " -order 6 -lm ngram/LM-train-100MW.6gram.lm"
           output6gram = subprocess.check_output(command6gram, shell=True)
@@ -55,6 +56,7 @@ class LogRegModel:
           featureSet["ppl-6"] = float(ppl6gram.group().split('=')[1])
       except:
           pass
+      
       try:
           command5gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'test_sent.txt' + " -order 5 -lm ngram/LM-train-100MW.5gram.lm"
           output5gram = subprocess.check_output(command5gram, shell=True)
@@ -62,6 +64,7 @@ class LogRegModel:
           featureSet["ppl-5"] = float(ppl5gram.group().split('=')[1])
       except:
           pass
+      
       featureSet.update(self.posTags(index, article))
       return featureSet
 
@@ -108,7 +111,7 @@ class LogRegModel:
 
       usePreloaded = False
       if (not usePreloaded):
-          featSelectFilename = "featselect_{0}.pkl".format(datetime.datetime.now())
+          featSelectFilename = "featselect_{0}.pkl".format(datetime.now())
           with open(featSelectFilename, 'wb') as featSelectF:
               pickle.dump(self.featSelect, featSelectF)
       else:
@@ -137,6 +140,7 @@ class LogRegModel:
       return int(self.model.predict(f)[0])
 
 def main():
+  start = datetime.now()
   train_data = open('trainingSet.dat', 'r').read()
   train_labels = open('trainingSetLabels.dat', 'r').readlines()
   train_data = train_data.split('~~~~~')[1:]
@@ -144,6 +148,7 @@ def main():
   model = LogRegModel()
   trainSyntaxFeats = trainSyntax.load()
   for i in range(0, len(train_data)):
+    print "sent number", i, datetime.now() - start 
     feats = trainSyntaxFeats[i]
 
     #Can add more features to feats object if more precomputed features are added
@@ -166,7 +171,7 @@ def main():
     pred = model.predict(dev_data[i], feats)
     if pred == int(dev_labels[i]):
       correct_preds += 1
-  print ("model accuracy:", float(correct_preds)/len(dev_labels))
+  print "model accuracy:", float(correct_preds)/len(dev_labels)
 
 main()
 #trainSyntax.generate()
