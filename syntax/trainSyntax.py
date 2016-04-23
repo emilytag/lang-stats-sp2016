@@ -21,17 +21,27 @@ def buildSubtrees(tree):
     if (len(tree) > 0):
         levels[1] = tree.label() + " ( "
         levels[2] = tree.label() + " ( "
+        levels[3] = tree.label() + " ( "
         for subtree1 in tree:
             if (not isinstance(subtree1, str)):
                 levels[1] += subtree1.label() + " "
                 levels[2] += subtree1.label() + " ( "
+                levels[3] += subtree1.label() + " ( "
                 for subtree2 in subtree1:
                     if (not isinstance(subtree2, str)):
     
                         levels[2] += subtree2.label() + " "
+                        levels[3] += subtree2.label() + " ( "
+                        for subtree3 in subtree2:
+                            if (not isinstance(subtree3, str)):
+                                levels[3] += subtree3.label() + " "
+                        levels[3] += ") "
                 levels[2] += ") "
-        levels[1] += ")"
-        levels[2] += ")"
+                levels[3] += ") "
+        levels[1] += ") "
+        levels[2] += ") "
+        levels[3] += ") "
+    levels.pop(3, None)
     return set([x.replace("( )", "").strip() for x in levels.values()])
 
 
@@ -39,7 +49,7 @@ def buildSubtrees(tree):
 def generate():
     features = []
     scores = []
-    with open("syntax/output_log_{0}.txt".format(ver), "w") as logF, open(featureFilename.format(ver), "w")  as synFile, open(scoreFilename.format(ver), "w")  as scoresFile, open('syntax/zpar.txt') as zparFile:
+    with open("syntax/output_log_{0}.txt".format(ver), "w") as logF, open(featureFilename.format(ver), "wb")  as synFile, open(scoreFilename.format(ver), "wb")  as scoresFile, open('syntax/zpar_train.txt') as zparFile:
         for l in zparFile:
             if (l == "(NP (NNP ENDOFDOC))\n"):
                 if (len(features) > 0):
@@ -77,7 +87,7 @@ def load():
         features = pickle.load(synFile)
         scores = pickle.load(scoresFile)
         for i in range (len(features)):
-            feats.append({x:v/len(scores[i]['sent_length']) for x,v in features[i].items()})
+            feats.append({"syntax_" +x:v/len(scores[i]['sent_length']) for x,v in features[i].items()})
 
     return feats
 if __name__ == '__main__':

@@ -21,17 +21,27 @@ def buildSubtrees(tree):
     if (len(tree) > 0):
         levels[1] = tree.label() + " ( "
         levels[2] = tree.label() + " ( "
+        levels[3] = tree.label() + " ( "
         for subtree1 in tree:
             if (not isinstance(subtree1, str)):
                 levels[1] += subtree1.label() + " "
                 levels[2] += subtree1.label() + " ( "
+                levels[3] += subtree1.label() + " ( "
                 for subtree2 in subtree1:
                     if (not isinstance(subtree2, str)):
     
                         levels[2] += subtree2.label() + " "
+                        levels[3] += subtree2.label() + " ( "
+                        for subtree3 in subtree2:
+                            if (not isinstance(subtree3, str)):
+                                levels[3] += subtree3.label() + " "
+                        levels[3] += ") "
                 levels[2] += ") "
-        levels[1] += ")"
-        levels[2] += ")"
+                levels[3] += ") "
+        levels[1] += ") "
+        levels[2] += ") "
+        levels[3] += ") "
+    levels.pop(3, None)
     return set([re.sub( '\s+', ' ', x.replace("( )", "") ).strip() for x in levels.values()])
 def readfile(docFilename):
     docs = []
@@ -106,7 +116,7 @@ def generate(datFilename):
             
     feats = []    
     for i in range(len(features)):
-        feats.append({x:v/len(scores[i]['sent_length']) for x,v in features[i].items()})
+        feats.append({"syntax_" +x:v/len(scores[i]['sent_length']) for x,v in features[i].items()})
     return feats
 
 
