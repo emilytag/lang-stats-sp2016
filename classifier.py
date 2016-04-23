@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.feature_extraction import DictVectorizer
 import sys
 from syntax import trainSyntax, devtestSyntax
+import bagOfWords
 import subprocess
 from sklearn.feature_selection.from_model import SelectFromModel
 from sklearn.svm import LinearSVC
@@ -175,10 +176,12 @@ def main():
   train_labels = [x.strip() for x in train_labels]
   model = LogRegModel()
   trainSyntaxFeats = trainSyntax.load()
+  trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
+
   for i in range(0, len(train_data)):
     print "sent number", i, datetime.now() - start 
     feats = trainSyntaxFeats[i]
-
+    feats.update(trainBagOfWordsFeats[i])
     #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
   if (not os.path.isfile("pos_tags.pkl") ):
@@ -193,8 +196,11 @@ def main():
   correct_preds = 0
   
   devSyntaxFeats = devtestSyntax.generate(dev_filename)
+  devbagOfWordsFeats = bagOfWords.load('developmentSet.dat')
+
   for i in range(0, len(dev_data)):
     feats = devSyntaxFeats[i]
+    feats.update(devbagOfWordsFeats[i])
 
     pred = model.predict(dev_data[i], feats)
     if pred == int(dev_labels[i]):
