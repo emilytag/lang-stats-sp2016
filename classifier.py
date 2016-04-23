@@ -77,7 +77,7 @@ class LogRegModel:
           for pos in postagsset:
               fs[pos + "_Percent"] += sum(1.0 for x in postags if x == pos)
 
-              fs[pos + "_Run"] = max(fs[pos + "_Run"], max([sum(1 for _ in l) for n, l in itertools.groupby(postags) if n == pos], default=0))
+              fs[pos + "_Run"] = max(fs[pos + "_Run"], max([sum(1 for _ in l) for n, l in itertools.groupby(postags) if n == pos]))
               
       fs = {x:v/totalCount for x,v in fs.items()}
       #fs["NNP_Perc"] = nnpCount / totalCount
@@ -106,7 +106,7 @@ class LogRegModel:
           with open(featSelectFilename, 'wb') as featSelectF:
               pickle.dump(self.featSelect, featSelectF)
       else:
-          with open("featselect_2016-04-23 11:00:37.443495.pkl", 'rb') as featselectF:
+          with open("featselect_2016-04-23 14:07:16.366972.pkl", 'rb') as featselectF:
               self.featSelect = pickle.load(featselectF)
       X = self.featSelect.transform(X)
       print(X.shape)
