@@ -36,6 +36,7 @@ class LogRegModel:
       featureSet = {}
       
       articleWords = article.replace("<s>", "").replace("</s>", "").split()
+      featureSet["articlelen"] = len(articleWords)
       fx_words = [word for word in articleWords if word.lower() in stopwords.words('english')]
       featureSet["fxwordcount"] = len(fx_words)/len(articleWords)
       non_words = [word for word in articleWords if word.isalpha() != True]
@@ -44,18 +45,23 @@ class LogRegModel:
       featureSet["contentwordcount"] = len(content_words)/len(articleWords)
       featureSet["uniquewords"] = len(set(articleWords))/len(articleWords)
       featureSet.update(feats)
-      
+      temp_output_file = open('test_sent.txt', "w")
+      temp_output_file.write(article.strip()+"\n")
+      temp_output_file.close()
       try:
-          temp_output_file = open('test_sent.txt', "w")
-          temp_output_file.write(article.strip()+"\n")
-          temp_output_file.close()
-          command =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'test_sent.txt' + " -order 5 -lm ngram/LM-train-100MW.5.lm"
-          output = subprocess.check_output(command, shell=True)
-          ppl = re.search(r'ppl= \d*\.?\d*', output)
-          featureSet["ppl-5"] = float(ppl.group().split('=')[1])
+          command6gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'test_sent.txt' + " -order 6 -lm ngram/LM-train-100MW.6gram.lm"
+          output6gram = subprocess.check_output(command6gram, shell=True)
+          ppl6gram = re.search(r'ppl= \d*\.?\d*', output6gram)
+          featureSet["ppl-6"] = float(ppl6gram.group().split('=')[1])
       except:
           pass
-
+      try:
+          command5gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'test_sent.txt' + " -order 5 -lm ngram/LM-train-100MW.5gram.lm"
+          output5gram = subprocess.check_output(command5gram, shell=True)
+          ppl5gram = re.search(r'ppl= \d*\.?\d*', output5gram)
+          featureSet["ppl-5"] = float(ppl5gram.group().split('=')[1])
+      except:
+          pass
       featureSet.update(self.posTags(index, article))
       return featureSet
 
