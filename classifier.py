@@ -32,7 +32,7 @@ class LogRegModel:
               self.posTagsDict = pickle.load(posfile)
 
 
-    def extract_features(self, article, feats, fivegram_sent_ppl, sixgram_sent_ppl, index = None):
+    def extract_features(self, article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl, index = None):
       featureSet = {}
       articleWords = article.replace("<s>", "").replace("</s>", "").split()
       featureSet["articlelen"] = len(articleWords)
@@ -83,8 +83,8 @@ class LogRegModel:
       postags = nltk.pos_tag_sents(articleSents)
       return postags
       
-    def learn(self, article, classification, feats, index, fivegram_sent_ppl, sixgram_sent_ppl):
-      features = self.extract_features(article, feats, fivegram_sent_ppl, sixgram_sent_ppl, index)
+    def learn(self, article, classification, feats, index, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl):
+      features = self.extract_features(article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl, index)
       self.allFeatures.append(features)
       self.allCorrect.append(classification)
 
@@ -147,13 +147,19 @@ def ppl_wrangling(sents, sent_ppl):
   return doc_ppl
 
 def ngram_ppls():
+  command3gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'ngram_file.txt' + " -order 3 -lm ngram/LM-train-100MW.3grambin.lm -debug 1"
+  output3gram = subprocess.check_output(command3gram, shell=True)
+  threegram_sent_ppl = output3gram.split("\n\n")
+  command4gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'ngram_file.txt' + " -order 4 -lm ngram/LM-train-100MW.4grambin.lm -debug 1"
+  output4gram = subprocess.check_output(command4gram, shell=True)
+  fourgram_sent_ppl = output4gram.split("\n\n")
   command5gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'ngram_file.txt' + " -order 5 -lm ngram/LM-train-100MW.5grambin.lm -debug 1"
   output5gram = subprocess.check_output(command5gram, shell=True)
   fivegram_sent_ppl = output5gram.split("\n\n")
   command6gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'ngram_file.txt' + " -order 6 -lm ngram/LM-train-100MW.6grambin.lm -debug 1"
   output6gram = subprocess.check_output(command6gram, shell=True)
   sixgram_sent_ppl = output6gram.split("\n\n")
-  return fivegram_sent_ppl, sixgram_sent_ppl
+  return threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl
 
 def main():
   start = datetime.now()
@@ -164,7 +170,7 @@ def main():
 
   for article in train_data:
     ngram_file.write(article)
-  fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls()
+  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls()
 
   train_labels = [x.strip() for x in train_labels]
   model = LogRegModel()
@@ -174,7 +180,7 @@ def main():
     feats = trainSyntaxFeats[i]
 
     #Can add more features to feats object if more precomputed features are added
-    model.learn(train_data[i], train_labels[i], feats, i, fivegram_sent_ppl, sixgram_sent_ppl)
+    model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
   if (not os.path.isfile("pos_tags.pkl") ):
       with open("pos_tags.pkl", "wb") as postagsfile:
           pickle.dump(model.posTagsDict, postagsfile)
