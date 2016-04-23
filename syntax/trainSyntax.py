@@ -51,7 +51,7 @@ def generate():
     scores = []
     with open("syntax/output_log_{0}.txt".format(ver), "w") as logF, open(featureFilename.format(ver), "wb")  as synFile, open(scoreFilename.format(ver), "wb")  as scoresFile, open('syntax/zpar_train.txt') as zparFile:
         for l in zparFile:
-            if (l == "(NP (NNP ENDOFDOC))\n"):
+            if (l == "(NP (NNP ENDOFDOC) (. .))\n"):
                 if (len(features) > 0):
                     features[-1] = {x:v for x,v in features[-1].items()}
                     print("{0}".format(sorted(features[-1].items(), key=operator.itemgetter(1), reverse=True)), file = logF)

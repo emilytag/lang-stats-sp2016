@@ -55,8 +55,8 @@ def readfile(docFilename):
                 docs.append([])
                 trainingF.write("ENDOFDOC . \n")
             else:
-                docs[-1].append( line.replace("<s>", "").replace("</s>", "").strip())
-                trainingF.write(line.replace("<s>", "").replace("</s>", "").strip() + " . \n")
+                docs[-1].append( line.lower().replace("<s>", "").replace("</s>", "").strip())
+                trainingF.write(line.lower().replace("<s>", "").replace("</s>", "").strip() + " . \n")
                 count += 1
     #print(count)
     #return docs

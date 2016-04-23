@@ -62,22 +62,27 @@ class LogRegModel:
       return featureSet
 
     def posTags(self, index, article):
-      fs = {}
+      fs = defaultdict(float)
       nnpCount = 0.0
       totalCount = 0.0
-      fs["NNP_Run"] = 0.0
       ptd = []
       if (index is None):
           ptd = self.getPOSTags(article)
       else:
+          if index not in self.posTagsDict:
+              self.posTagsDict[index] = self.getPOSTags(article)
           ptd = self.posTagsDict[index]
       for posSent in ptd:
           postags = [x[1] for x in posSent]
-          nnpCount += sum(1.0 for x in postags if x == "NNP")
+          postagsset = set(postags)
           totalCount += float(len(postags))
-          fs["NNP_Run"] = max(fs["NNP_Run"], max([sum(1 for _ in l) for n, l in itertools.groupby(postags) if n == "NNP"], default=0))
+          for pos in postagsset:
+              fs[pos + "_Percent"] += sum(1.0 for x in postags if x == pos)
 
-      fs["NNP_Perc"] = nnpCount / totalCount
+              fs[pos + "_Run"] = max(fs[pos + "_Run"], max([sum(1 for _ in l) for n, l in itertools.groupby(postags) if n == pos], default=0))
+              
+      fs = {x:v/totalCount for x,v in fs.items()}
+      #fs["NNP_Perc"] = nnpCount / totalCount
       return fs
       
     def getPOSTags(self, article):
@@ -96,25 +101,29 @@ class LogRegModel:
       self.featSelect = SelectFromModel(RandomForestClassifier()).fit(X,y)
       #lr = 
       #self.featSelect = RandomizedLogisticRegression().fit(X,y)#SelectFromModel(lr,prefit=True
-      X = self.featSelect.transform(X)
-      print(X.shape)
-      self.printSelectedFeats()
+
       usePreloaded = False
       if (not usePreloaded):
           featSelectFilename = "featselect_{0}.pkl".format(datetime.datetime.now())
           with open(featSelectFilename, 'wb') as featSelectF:
               pickle.dump(self.featSelect, featSelectF)
       else:
-          with open("featselect_2016-04-22 15:25:06.304474.pkl", 'rb') as featselectF:
+          with open("featselect_2016-04-23 11:00:37.443495.pkl", 'rb') as featselectF:
               self.featSelect = pickle.load(featselectF)
+      X = self.featSelect.transform(X)
+      print(X.shape)
+      self.printSelectedFeats()
       self.model.fit(X, y)
       #self.model.fit(X,y)
 
     def printSelectedFeats(self):
       featIndxs = [i for i,x in enumerate(self.featSelect.get_support()) if x == True]
+      featlist = []
       for feat, indx in self.vec.vocabulary_.items():
         if indx in featIndxs:
-          print("Selected feature:{0}".format(feat))
+          featlist.append(feat)
+      for feat in sorted(featlist):
+        print("Selected feature:{0}".format(feat))
     def predict(self, article, feats):
       features = self.extract_features(article, feats)
       f = self.vec.transform(features).toarray()
@@ -132,8 +141,7 @@ def main():
   trainSyntaxFeats = trainSyntax.load()
   for i in range(0, len(train_data)):
     feats = trainSyntaxFeats[i]
-    if i not in model.posTagsDict:
-        model.posTagsDict[i] = model.getPOSTags(train_data[i])
+
     #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats, i)
   if (not os.path.isfile("pos_tags.pkl") ):
