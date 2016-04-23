@@ -36,14 +36,12 @@ class LogRegModel:
       featureSet = {}
       
       articleWords = article.replace("<s>", "").replace("</s>", "").split()
-      #featureSet['article_len'] = len(article.split())
       fx_words = [word for word in articleWords if word.lower() in stopwords.words('english')]
-      featureSet["fxwordcount"] = len(fx_words)
+      featureSet["fxwordcount"] = len(fx_words)/len(articleWords)
       non_words = [word for word in articleWords if word.isalpha() != True]
-      featureSet["nonwordcount"] = len(non_words)
+      featureSet["nonwordcount"] = len(non_words)/len(articleWords)
       content_words = [word for word in articleWords if word.lower() not in stopwords.words('english')]
-      featureSet["contentwordcount"] = len(content_words) 
-      #FEATURES TO DO
+      featureSet["contentwordcount"] = len(content_words)/len(articleWords)
       featureSet["uniquewords"] = len(set(articleWords))/len(articleWords)
       featureSet.update(feats)
       
