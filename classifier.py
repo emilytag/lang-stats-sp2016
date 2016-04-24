@@ -46,7 +46,6 @@ class LogRegModel:
       featureSet["uniquewords"] = len(set(articleWords))/len(articleWords)
       featureSet.update(feats)
 
-<<<<<<< HEAD
       sents = [x for x in article.split("\n") if len(x) > 1]
       ppl_three, ppl_four, ppl_five, ppl_six = ppl_wrangling(sents, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
       featureSet["ppl-5"] = ppl_five
@@ -54,7 +53,6 @@ class LogRegModel:
       featureSet["ppl-3"] = ppl_three
       featureSet["ppl-4"] = ppl_four
       
-=======
       try:
         sents = [x for x in article.split("\n") if len(x) > 1]
         ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
@@ -68,7 +66,6 @@ class LogRegModel:
       except:
           pass
 
->>>>>>> d7ef87b9a313645cca1f43d342ed075dfb6d1fad
       featureSet.update(self.posTags(index, article))
       return featureSet
 
@@ -208,6 +205,8 @@ def ngram_ppls(filename):
 
 def main():
   start = datetime.now()
+  #train_data = open('trainingSet.dat', 'r').read()
+  #train_labels = open('trainingSetLabels.dat', 'r').readlines()
   train_data = open('trainingSetAug.txt', 'r').read()
   train_labels = open('trainingSetAugLabel.txt', 'r').readlines()
   train_data = train_data.split('~~~~~')[1:]
@@ -226,18 +225,10 @@ def main():
   trainSyntaxFeats = trainSyntax.load()
   #trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
 
-<<<<<<< HEAD
   for i in range(0, len(train_data)):
     print "sent number", i, datetime.now() - start 
     feats = trainSyntaxFeats[i]
-    #feats = {}
-=======
-  for i in range(0, len(train_data)):#len(train_data)):
-    #print "sent number", i, datetime.now() - start 
-    feats = trainSyntaxFeats[i]
->>>>>>> d7ef87b9a313645cca1f43d342ed075dfb6d1fad
     #feats.update(trainBagOfWordsFeats[i])
-    #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
     if (i % 50 == 0):
         print("Articles processed:{0}".format(i))
@@ -275,16 +266,10 @@ def main():
   correct_preds = 0
   
   devSyntaxFeats = devtestSyntax.generate(dev_filename)
-<<<<<<< HEAD
-  #devbagOfWordsFeats = bagOfWords.load('developmentSet.dat')
 
-  for i in range(0, len(dev_data)):
-    #feats = {}
-=======
   #devbagOfWordsFeats = bagOfWords.load(dev_filename)
 
   for i in range(0, len(dev_data)):
->>>>>>> d7ef87b9a313645cca1f43d342ed075dfb6d1fad
     feats = devSyntaxFeats[i]
     #feats.update(devbagOfWordsFeats[i])
 
