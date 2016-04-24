@@ -47,11 +47,15 @@ class LogRegModel:
       featureSet.update(feats)
 
       try:
-          sents = [x for x in article.split("\n") if len(x) > 1]
-          ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
-          ppl_six = ppl_wrangling(sents, sixgram_sent_ppl)
-          featureSet["ppl-5"] = ppl_five
-          featureSet["ppl-6"] = ppl_six
+        sents = [x for x in article.split("\n") if len(x) > 1]
+        ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
+        ppl_six = ppl_wrangling(sents, sixgram_sent_ppl)
+        ppl_three = ppl_wrangling(sents, threegram_sent_ppl)
+        ppl_four = ppl_wrangling(sents, fourgram_sent_ppl)
+        featureSet["ppl-5"] = ppl_five
+        featureSet["ppl-6"] = ppl_six
+        featureSet["ppl-3"] = ppl_three
+        featureSet["ppl-4"] = ppl_four
       except:
           pass
 
@@ -185,14 +189,14 @@ def main():
   fourgram_sent_ppl =[]
   fivegram_sent_ppl=[]
   sixgram_sent_ppl = []  
-  #threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_train.txt')
+  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_train.txt')
 
   train_labels = [x.strip() for x in train_labels]
   model = LogRegModel()
   trainSyntaxFeats = trainSyntax.load()
   #trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
 
-  for i in range(0, 5):#len(train_data)):
+  for i in range(0, len(train_data)):#len(train_data)):
     #print "sent number", i, datetime.now() - start 
     feats = trainSyntaxFeats[i]
     #feats.update(trainBagOfWordsFeats[i])
@@ -223,7 +227,7 @@ def main():
   fourgram_sent_ppl =[]
   fivegram_sent_ppl=[]
   sixgram_sent_ppl = []  
-  #threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
+  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
 
   dev_labels = [x.strip() for x in dev_labels]
   correct_preds = 0
