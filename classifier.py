@@ -118,8 +118,9 @@ class LogRegModel:
           featlist.append(feat)
       for feat in sorted(featlist):
         print("Selected feature:{0}".format(feat))
-    def predict(self, article, feats):
-      features = self.extract_features(article, feats)
+
+    def predict(self, article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl):
+      features = self.extract_features(article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
       f = self.vec.transform(features).toarray()
       #prediction = self.model.predict(f)
       #prob = self.model.predict_proba(f)
@@ -147,17 +148,17 @@ def ppl_wrangling(sents, sent_ppl):
   doc_ppl = 10.0 ** (-logprob_total/(words_total-oovs_total+sents_total))
   return doc_ppl
 
-def ngram_ppls():
-  command3gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'ngram_file.txt' + " -order 3 -lm ngram/LM-train-100MW.3grambin.lm -debug 1"
+def ngram_ppls(filename):
+  command3gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + filename + " -order 3 -lm ngram/LM-train-100MW.3grambin.lm -debug 1"
   output3gram = subprocess.check_output(command3gram, shell=True)
   threegram_sent_ppl = output3gram.split("\n\n")
-  command4gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'ngram_file.txt' + " -order 4 -lm ngram/LM-train-100MW.4grambin.lm -debug 1"
+  command4gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + filename + " -order 4 -lm ngram/LM-train-100MW.4grambin.lm -debug 1"
   output4gram = subprocess.check_output(command4gram, shell=True)
   fourgram_sent_ppl = output4gram.split("\n\n")
-  command5gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'ngram_file.txt' + " -order 5 -lm ngram/LM-train-100MW.5grambin.lm -debug 1"
+  command5gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + filename + " -order 5 -lm ngram/LM-train-100MW.5grambin.lm -debug 1"
   output5gram = subprocess.check_output(command5gram, shell=True)
   fivegram_sent_ppl = output5gram.split("\n\n")
-  command6gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'ngram_file.txt' + " -order 6 -lm ngram/LM-train-100MW.6grambin.lm -debug 1"
+  command6gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + filename + " -order 6 -lm ngram/LM-train-100MW.6grambin.lm -debug 1"
   output6gram = subprocess.check_output(command6gram, shell=True)
   sixgram_sent_ppl = output6gram.split("\n\n")
   return threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl
@@ -167,21 +168,21 @@ def main():
   train_data = open('trainingSet.dat', 'r').read()
   train_labels = open('trainingSetLabels.dat', 'r').readlines()
   train_data = train_data.split('~~~~~')[1:]
-  ngram_file = open('ngram_file.txt', 'w')
+  ngram_file = open('ngram_file_train.txt', 'w')
 
   for article in train_data:
     ngram_file.write(article)
-  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls()
+  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_train.txt')
 
   train_labels = [x.strip() for x in train_labels]
   model = LogRegModel()
   trainSyntaxFeats = trainSyntax.load()
-  trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
+  #trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
 
   for i in range(0, len(train_data)):
     print "sent number", i, datetime.now() - start 
     feats = trainSyntaxFeats[i]
-    feats.update(trainBagOfWordsFeats[i])
+    #feats.update(trainBagOfWordsFeats[i])
     #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
   if (not os.path.isfile("pos_tags.pkl") ):
@@ -192,6 +193,10 @@ def main():
   dev_data = open(dev_filename, 'r').read()
   dev_labels = open('developmentSetLabels.dat', 'r').readlines()
   dev_data = dev_data.split('~~~~~')[1:]
+  ngram_file_devtest = open('ngram_file_devtest.txt', 'w')
+  for article in dev_data:
+    ngram_file_devtest.write(article)
+  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
   dev_labels = [x.strip() for x in dev_labels]
   correct_preds = 0
   
@@ -202,7 +207,7 @@ def main():
     feats = devSyntaxFeats[i]
     feats.update(devbagOfWordsFeats[i])
 
-    pred = model.predict(dev_data[i], feats)
+    pred = model.predict(dev_data[i], feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
     if pred == int(dev_labels[i]):
       correct_preds += 1
   print "model accuracy:", float(correct_preds)/len(dev_labels)
