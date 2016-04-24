@@ -21,7 +21,6 @@ import re
 from _collections import defaultdict
 from datetime import datetime
 
-currTimestamp = None
 class LogRegModel:
     def __init__(self):
       self.model = LogisticRegression()
@@ -32,6 +31,7 @@ class LogRegModel:
       if (os.path.isfile("pos_tags.pkl") ):
           with open("pos_tags.pkl", "rb") as posfile:
               self.posTagsDict = pickle.load(posfile)
+      self.currTimestamp = str(datetime.now())
 
 
     def extract_features(self, article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl, index = None):
@@ -105,11 +105,10 @@ class LogRegModel:
       #self.featSelect = RandomizedLogisticRegression().fit(X,y)#SelectFromModel(lr,prefit=True
 
       usePreloaded = False
-      currTimestamp = datetime.now()
 
       if (not usePreloaded):
-          featSelectFilename = "featselect_{0}.pkl".format(currTimestamp)
-          vecFilename = "vec_{0}.pkl".format(currTimestamp)
+          featSelectFilename = "featselect_{0}.pkl".format(self.currTimestamp)
+          vecFilename = "vec_{0}.pkl".format(self.currTimestamp)
           with open(featSelectFilename, 'wb') as featSelectF, open(vecFilename, 'wb') as vecF:
               pickle.dump(self.featSelect, featSelectF)
               pickle.dump(self.vec, vecF)
@@ -130,7 +129,7 @@ class LogRegModel:
           featlist.append(feat)
       for feat in sorted(featlist):
         print("Selected feature:{0}".format(feat))
-      with open("picked_feats_{0}.pkl".format(currTimestamp), "wb") as picklefile:
+      with open("picked_feats_{0}.pkl".format(self.currTimestamp), "wb") as picklefile:
         pickle.dump(sorted(featlist), picklefile, protocol=2)
 
     def predict(self, article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl):
@@ -203,7 +202,7 @@ def main():
   trainSyntaxFeats = trainSyntax.load()
   #trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
 
-  for i in range(0, len(train_data)):#len(train_data)):
+  for i in range(0, 5):# len(train_data)):#len(train_data)):
     #print "sent number", i, datetime.now() - start 
     feats = trainSyntaxFeats[i]
     #feats.update(trainBagOfWordsFeats[i])
@@ -247,7 +246,7 @@ def main():
   devSyntaxFeats = devtestSyntax.generate(dev_filename)
   #devbagOfWordsFeats = bagOfWords.load(dev_filename)
 
-  for i in range(0, len(dev_data)):
+  for i in range(0, 5):#len(dev_data)):
     feats = devSyntaxFeats[i]
     #feats.update(devbagOfWordsFeats[i])
 
@@ -258,10 +257,10 @@ def main():
           correct_preds += 1
   if (len(dev_labels) > 0):  
       with open("results.txt", "a+") as resfile:
-          resfile.write("Accuracy:{0},FeatSet:{1}".format( float(correct_preds)/len(dev_labels), currTimestamp))       
+          resfile.write("Accuracy:{0},FeatSet:{1}\n".format( float(correct_preds)/len(dev_labels), model.currTimestamp))       
       print ("model accuracy:", float(correct_preds)/len(dev_labels))
 
 
-#for i in range (0, 5):
-main()
+for i in range (0, 20):
+    main()
 #trainSyntax.generate()
