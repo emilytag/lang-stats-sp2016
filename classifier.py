@@ -105,9 +105,11 @@ class LogRegModel:
       #self.featSelect = RandomizedLogisticRegression().fit(X,y)#SelectFromModel(lr,prefit=True
 
       usePreloaded = False
+      currTimestamp = datetime.now()
+
       if (not usePreloaded):
-          featSelectFilename = "featselect_{0}.pkl".format(datetime.now())
-          vecFilename = "vec_{0}.pkl".format(datetime.now())
+          featSelectFilename = "featselect_{0}.pkl".format(currTimestamp)
+          vecFilename = "vec_{0}.pkl".format(currTimestamp)
           with open(featSelectFilename, 'wb') as featSelectF, open(vecFilename, 'wb') as vecF:
               pickle.dump(self.featSelect, featSelectF)
               pickle.dump(self.vec, vecF)
@@ -128,7 +130,6 @@ class LogRegModel:
           featlist.append(feat)
       for feat in sorted(featlist):
         print("Selected feature:{0}".format(feat))
-      currTimestamp = datetime.now()
       with open("picked_feats_{0}.pkl".format(currTimestamp), "wb") as picklefile:
         pickle.dump(sorted(featlist), picklefile, protocol=2)
 
