@@ -49,8 +49,12 @@ class LogRegModel:
       sents = [x for x in article.split("\n") if len(x) > 1]
       ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
       ppl_six = ppl_wrangling(sents, sixgram_sent_ppl)
+      ppl_three = ppl_wrangling(sents, threegram_sent_ppl)
+      ppl_four = ppl_wrangling(sents, fourgram_sent_ppl)
       featureSet["ppl-5"] = ppl_five
       featureSet["ppl-6"] = ppl_six
+      featureSet["ppl-3"] = ppl_three
+      featureSet["ppl-4"] = ppl_four
 
       featureSet.update(self.posTags(index, article))
       return featureSet
@@ -176,12 +180,13 @@ def main():
 
   train_labels = [x.strip() for x in train_labels]
   model = LogRegModel()
-  trainSyntaxFeats = trainSyntax.load()
+  #trainSyntaxFeats = trainSyntax.load()
   #trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
 
   for i in range(0, len(train_data)):
     print "sent number", i, datetime.now() - start 
-    feats = trainSyntaxFeats[i]
+    #feats = trainSyntaxFeats[i]
+    feats = {}
     #feats.update(trainBagOfWordsFeats[i])
     #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
@@ -200,12 +205,13 @@ def main():
   dev_labels = [x.strip() for x in dev_labels]
   correct_preds = 0
   
-  devSyntaxFeats = devtestSyntax.generate(dev_filename)
-  devbagOfWordsFeats = bagOfWords.load('developmentSet.dat')
+  #devSyntaxFeats = devtestSyntax.generate(dev_filename)
+  #devbagOfWordsFeats = bagOfWords.load('developmentSet.dat')
 
   for i in range(0, len(dev_data)):
-    feats = devSyntaxFeats[i]
-    feats.update(devbagOfWordsFeats[i])
+    feats = {}
+    #feats = devSyntaxFeats[i]
+    #feats.update(devbagOfWordsFeats[i])
 
     pred = model.predict(dev_data[i], feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
     if pred == int(dev_labels[i]):
