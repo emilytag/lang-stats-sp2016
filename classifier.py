@@ -21,17 +21,24 @@ import re
 from _collections import defaultdict
 from datetime import datetime
 
+foldername = "bow_syntax_pos_dumb"
 class LogRegModel:
-    def __init__(self):
-      self.model = LogisticRegression()
-      self.vec = DictVectorizer()
-      self.allFeatures = []
-      self.allCorrect = []
-      self.posTagsDict = defaultdict(list)
-      if (os.path.isfile("pos_tags.pkl") ):
-          with open("pos_tags.pkl", "rb") as posfile:
-              self.posTagsDict = pickle.load(posfile)
-      self.currTimestamp = str(datetime.now())
+    def __init__(self,model = None, vec= None, featureselector= None):
+      if (model is None):
+          self.model = LogisticRegression()
+          self.vec = DictVectorizer()
+          self.allFeatures = []
+          self.allCorrect = []
+          self.posTagsDict = defaultdict(list)
+          if (os.path.isfile("pos_tags.pkl") ):
+              with open("pos_tags.pkl", "rb") as posfile:
+                  self.posTagsDict = pickle.load(posfile)
+          self.currTimestamp = str(datetime.now())
+      else:
+        self.model = model
+        self.vec = vec
+        self.featSelect = featureselector
+        
 
 
     def extract_features(self, article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl, index = None):
@@ -47,18 +54,18 @@ class LogRegModel:
       featureSet["uniquewords"] = len(set(articleWords))/len(articleWords)
       featureSet.update(feats)
 
-#       try:
-#         sents = [x for x in article.split("\n") if len(x) > 1]
-#         ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
-#         ppl_six = ppl_wrangling(sents, sixgram_sent_ppl)
-#         ppl_three = ppl_wrangling(sents, threegram_sent_ppl)
-#         ppl_four = ppl_wrangling(sents, fourgram_sent_ppl)
-#         featureSet["ppl-5"] = ppl_five
-#         featureSet["ppl-6"] = ppl_six
-#         featureSet["ppl-3"] = ppl_three
-#         featureSet["ppl-4"] = ppl_four
-#       except:
-#           pass
+      try:
+        sents = [x for x in article.split("\n") if len(x) > 1]
+        ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
+        ppl_six = ppl_wrangling(sents, sixgram_sent_ppl)
+        ppl_three = ppl_wrangling(sents, threegram_sent_ppl)
+        ppl_four = ppl_wrangling(sents, fourgram_sent_ppl)
+        featureSet["ppl-5"] = ppl_five
+        featureSet["ppl-6"] = ppl_six
+        featureSet["ppl-3"] = ppl_three
+        featureSet["ppl-4"] = ppl_four
+      except:
+          pass
 
       featureSet.update(self.posTags(index, article))
       return featureSet
@@ -105,13 +112,16 @@ class LogRegModel:
       #self.featSelect = RandomizedLogisticRegression().fit(X,y)#SelectFromModel(lr,prefit=True
 
       usePreloaded = False
+      featSelectFilename = os.path.join(foldername,"featselect_{0}.pkl".format(self.currTimestamp))
+      vecFilename = os.path.join(foldername,"vec_{0}.pkl".format(self.currTimestamp))
+      modelFilename = os.path.join(foldername,"model_{0}.pkl".format(self.currTimestamp))
 
       if (not usePreloaded):
-          featSelectFilename = "featselect_{0}.pkl".format(self.currTimestamp)
-          vecFilename = "vec_{0}.pkl".format(self.currTimestamp)
+
           with open(featSelectFilename, 'wb') as featSelectF, open(vecFilename, 'wb') as vecF:
               pickle.dump(self.featSelect, featSelectF)
               pickle.dump(self.vec, vecF)
+              
       else:
           with open("featselect_2016-04-23 14:07:16.366972.pkl", 'rb') as featselectF:
               self.featSelect = pickle.load(featselectF)
@@ -119,6 +129,8 @@ class LogRegModel:
       print(X.shape)
       self.printSelectedFeats()
       self.model.fit(X, y)
+      with open(modelFilename, 'wb') as modelF:
+          pickle.dump(self.model, modelF)
       #self.model.fit(X,y)
 
     def printSelectedFeats(self):
@@ -129,8 +141,19 @@ class LogRegModel:
           featlist.append(feat)
       for feat in sorted(featlist):
         print("Selected feature:{0}".format(feat))
-      with open("picked_feats_{0}.pkl".format(self.currTimestamp), "wb") as picklefile:
+      with open(os.path.join(foldername,"picked_feats_{0}.pkl".format(self.currTimestamp)), "wb") as picklefile:
         pickle.dump(sorted(featlist), picklefile, protocol=2)
+        
+    def printCoefs(self):
+      featIndxs = [i for i,x in enumerate(self.featSelect.get_support()) if x == True]
+      featlist = []
+      coefs= self.model.coef_
+      for feat, indx in self.vec.vocabulary_.items():
+        if indx in featIndxs:
+          featlist.append((feat, coefs[0][len(featlist)]))
+      with open(os.path.join(foldername,"featurecoeffs_{0}.txt".format(self.currTimestamp)), "wb") as picklefile:
+       for feat, co in sorted(featlist, key=lambda x: x[1]):
+           picklefile.write("{0}:{1}\n".format(feat, co))
 
     def predict(self, article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl):
       features = self.extract_features(article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
@@ -183,36 +206,53 @@ def ngram_ppls(filename):
   return threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl
 
 def main():
+  loadModel = False
   start = datetime.now()
-  train_data = open('trainingSet.dat', 'r').read()
-  train_labels = open('trainingSetLabels.dat', 'r').readlines()
-  train_data = train_data.split('~~~~~')[1:]
-  ngram_file = open('ngram_file_train.txt', 'w')
 
-  for article in train_data:
-    ngram_file.write(article)
-  threegram_sent_ppl = []
-  fourgram_sent_ppl =[]
-  fivegram_sent_ppl=[]
-  sixgram_sent_ppl = []  
-  #threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_train.txt')
 
-  train_labels = [x.strip() for x in train_labels]
   model = LogRegModel()
-  trainSyntaxFeats = trainSyntax.load()
-  #trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
+  if loadModel:
+      modelTimestamp = "2016-04-24 13:13:00.547227"
+      featSelectFilename = os.path.join(foldername,"featselect_{0}.pkl".format(modelTimestamp))
+      vecFilename = os.path.join(foldername,"vec_{0}.pkl".format(modelTimestamp))
+      modelFilename = os.path.join(foldername,"model_{0}.pkl".format(modelTimestamp))
+      with open(featSelectFilename, 'rb') as featF, open(vecFilename, 'rb') as vecF, open(modelFilename, 'rb') as modelF:
+          vec = pickle.load(vecF)
+          feat = pickle.load(featF)
+          modelObj = pickle.load(modelF)
+          model = LogRegModel(model=modelObj, featureselector=feat, vec=vec)
+          model.currTimestamp = modelTimestamp
+      
+  else:
+      train_data = open('trainingSet.dat', 'r').read()
+      train_labels = open('trainingSetLabels.dat', 'r').readlines()
+      train_data = train_data.split('~~~~~')[1:]
+      ngram_file = open('ngram_file_train.txt', 'w')
+      train_labels = [x.strip() for x in train_labels]
 
-  for i in range(0, 5):# len(train_data)):#len(train_data)):
-    #print "sent number", i, datetime.now() - start 
-    feats = trainSyntaxFeats[i]
-    #feats.update(trainBagOfWordsFeats[i])
-    #Can add more features to feats object if more precomputed features are added
-    model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
-    if (i % 50 == 0):
-        print("Articles processed:{0}".format(i))
-  with open("pos_tags.pkl", "wb") as postagsfile:
-      pickle.dump(model.posTagsDict, postagsfile)
-  model.fitModel()
+      for article in train_data:
+        ngram_file.write(article)
+      threegram_sent_ppl = []
+      fourgram_sent_ppl =[]
+      fivegram_sent_ppl=[]
+      sixgram_sent_ppl = []  
+      threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_train.txt')
+      
+      trainSyntaxFeats = trainSyntax.load()
+      #trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
+    
+      for i in range(0, len(train_data)):#len(train_data)):
+        #print "sent number", i, datetime.now() - start 
+        feats = trainSyntaxFeats[i]
+        #feats.update(trainBagOfWordsFeats[i])
+        #Can add more features to feats object if more precomputed features are added
+        model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
+        if (i % 50 == 0):
+            print("Articles processed:{0}".format(i))
+            pass
+      with open("pos_tags.pkl", "wb") as postagsfile:
+          pickle.dump(model.posTagsDict, postagsfile)
+      model.fitModel()
   dev_filename = 'developmentSet.dat'
   takeFromStdin = False
   dev_labels = []
@@ -238,15 +278,15 @@ def main():
   fourgram_sent_ppl =[]
   fivegram_sent_ppl=[]
   sixgram_sent_ppl = []  
-  #threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
+  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
 
-  #dev_labels = [x.strip() for x in dev_labels]
+  dev_labels = [x.strip() for x in dev_labels]
   correct_preds = 0
   
   devSyntaxFeats = devtestSyntax.generate(dev_filename)
   #devbagOfWordsFeats = bagOfWords.load(dev_filename)
-
-  for i in range(0, 5):#len(dev_data)):
+  model.printCoefs()
+  for i in range(0, len(dev_data)):
     feats = devSyntaxFeats[i]
     #feats.update(devbagOfWordsFeats[i])
 
@@ -256,11 +296,11 @@ def main():
         if pred == int(dev_labels[i]):
           correct_preds += 1
   if (len(dev_labels) > 0):  
-      with open("results.txt", "a+") as resfile:
+      with open(os.path.join(foldername,"results.txt"), "a+") as resfile:
           resfile.write("Accuracy:{0},FeatSet:{1}\n".format( float(correct_preds)/len(dev_labels), model.currTimestamp))       
       print ("model accuracy:", float(correct_preds)/len(dev_labels))
 
 
-for i in range (0, 20):
-    main()
+#for i in range (0, 5):
+main()
 #trainSyntax.generate()
