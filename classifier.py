@@ -31,6 +31,7 @@ class LogRegModel:
       if (os.path.isfile("pos_tags.pkl") ):
           with open("pos_tags.pkl", "rb") as posfile:
               self.posTagsDict = pickle.load(posfile)
+      self.currTimestamp = str(datetime.now())
 
 
     def extract_features(self, article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl, index = None):
@@ -38,34 +39,31 @@ class LogRegModel:
       articleWords = article.replace("<s>", "").replace("</s>", "").split()
       featureSet["articlelen"] = len(articleWords)
       fx_words = [word for word in articleWords if word.lower() in stopwords.words('english')]
-      featureSet["fxwordcount"] = len(fx_words)/len(articleWords)
+      try:
+        featureSet["fxwordcount"] = len(fx_words)/len(articleWords)
+      except:
+        featureSet["fxwordcount"] = 0
       non_words = [word for word in articleWords if word.isalpha() != True]
-      featureSet["nonwordcount"] = len(non_words)/len(articleWords)
+      try:
+        featureSet["nonwordcount"] = len(non_words)/len(articleWords)
+      except:
+        featureSet["nonwordcount"] = 0
       content_words = [word for word in articleWords if word.lower() not in stopwords.words('english')]
-      featureSet["contentwordcount"] = len(content_words)/len(articleWords)
-      featureSet["uniquewords"] = len(set(articleWords))/len(articleWords)
+      try:
+        featureSet["contentwordcount"] = len(content_words)/len(articleWords)
+      except:
+        featureSet["contentwordcount"] = 0
+      try:
+        featureSet["uniquewords"] = len(set(articleWords))/len(articleWords)
+      except:
+        featureSet["uniquewords"] = 0
       featureSet.update(feats)
-
       sents = [x for x in article.split("\n") if len(x) > 1]
       ppl_three, ppl_four, ppl_five, ppl_six = ppl_wrangling(sents, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
       featureSet["ppl-5"] = ppl_five
       featureSet["ppl-6"] = ppl_six
       featureSet["ppl-3"] = ppl_three
       featureSet["ppl-4"] = ppl_four
-      
-      try:
-        sents = [x for x in article.split("\n") if len(x) > 1]
-        ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
-        ppl_six = ppl_wrangling(sents, sixgram_sent_ppl)
-        ppl_three = ppl_wrangling(sents, threegram_sent_ppl)
-        ppl_four = ppl_wrangling(sents, fourgram_sent_ppl)
-        featureSet["ppl-5"] = ppl_five
-        featureSet["ppl-6"] = ppl_six
-        featureSet["ppl-3"] = ppl_three
-        featureSet["ppl-4"] = ppl_four
-      except:
-          pass
-
       featureSet.update(self.posTags(index, article))
       return featureSet
 
@@ -111,10 +109,13 @@ class LogRegModel:
       #self.featSelect = RandomizedLogisticRegression().fit(X,y)#SelectFromModel(lr,prefit=True
 
       usePreloaded = False
+
       if (not usePreloaded):
-          featSelectFilename = "featselect_{0}.pkl".format(datetime.now())
-          with open(featSelectFilename, 'wb') as featSelectF:
+          featSelectFilename = "featselect_{0}.pkl".format(self.currTimestamp)
+          vecFilename = "vec_{0}.pkl".format(self.currTimestamp)
+          with open(featSelectFilename, 'wb') as featSelectF, open(vecFilename, 'wb') as vecF:
               pickle.dump(self.featSelect, featSelectF)
+              pickle.dump(self.vec, vecF)
       else:
           with open("featselect_2016-04-23 14:07:16.366972.pkl", 'rb') as featselectF:
               self.featSelect = pickle.load(featselectF)
@@ -132,6 +133,8 @@ class LogRegModel:
           featlist.append(feat)
       for feat in sorted(featlist):
         print("Selected feature:{0}".format(feat))
+      with open("picked_feats_{0}.pkl".format(self.currTimestamp), "wb") as picklefile:
+        pickle.dump(sorted(featlist), picklefile, protocol=2)
 
     def predict(self, article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl):
       features = self.extract_features(article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
@@ -205,13 +208,14 @@ def ngram_ppls(filename):
 
 def main():
   start = datetime.now()
-  #train_data = open('trainingSet.dat', 'r').read()
-  #train_labels = open('trainingSetLabels.dat', 'r').readlines()
-  train_data = open('trainingSetAug.txt', 'r').read()
-  train_labels = open('trainingSetAugLabel.txt', 'r').readlines()
+
+  train_data = open('trainingSet.dat', 'r').read()
+  train_labels = open('trainingSetLabels.dat', 'r').readlines()
+  #train_data = open('trainingSetAug.txt', 'r').read()
+  #train_labels = open('trainingSetAugLabel.txt', 'r').readlines()
+
   train_data = train_data.split('~~~~~')[1:]
   ngram_file = open('ngram_file_train.txt', 'w')
-
   for article in train_data:
     ngram_file.write(article)
   threegram_sent_ppl = []
@@ -225,8 +229,10 @@ def main():
   trainSyntaxFeats = trainSyntax.load()
   #trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
 
+
   for i in range(0, len(train_data)):
     print "sent number", i, datetime.now() - start 
+
     feats = trainSyntaxFeats[i]
     #feats.update(trainBagOfWordsFeats[i])
     model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
@@ -234,6 +240,7 @@ def main():
         print("Articles processed:{0}".format(i))
   with open("pos_tags.pkl", "wb") as postagsfile:
       pickle.dump(model.posTagsDict, postagsfile)
+
   model.fitModel()
   dev_filename = 'developmentSet.dat'
   takeFromStdin = False
@@ -262,7 +269,6 @@ def main():
   sixgram_sent_ppl = []  
   threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
 
-  #dev_labels = [x.strip() for x in dev_labels]
   correct_preds = 0
   
   devSyntaxFeats = devtestSyntax.generate(dev_filename)
@@ -278,8 +284,12 @@ def main():
     if (len(dev_labels) > 0):
         if pred == int(dev_labels[i]):
           correct_preds += 1
-  if (len(dev_labels) > 0):         
-      print "model accuracy:", float(correct_preds)/len(dev_labels)
+  if (len(dev_labels) > 0):  
+      with open("results.txt", "a+") as resfile:
+          resfile.write("Accuracy:{0},FeatSet:{1}\n".format( float(correct_preds)/len(dev_labels), model.currTimestamp))       
+      print ("model accuracy:", float(correct_preds)/len(dev_labels))
+
+
 
 main()
 #trainSyntax.generate()
