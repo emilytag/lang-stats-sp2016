@@ -47,15 +47,12 @@ class LogRegModel:
       featureSet.update(feats)
 
       sents = [x for x in article.split("\n") if len(x) > 1]
-      ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
-      ppl_six = ppl_wrangling(sents, sixgram_sent_ppl)
-      ppl_three = ppl_wrangling(sents, threegram_sent_ppl)
-      ppl_four = ppl_wrangling(sents, fourgram_sent_ppl)
+      ppl_three, ppl_four, ppl_five, ppl_six = ppl_wrangling(sents, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
       featureSet["ppl-5"] = ppl_five
       featureSet["ppl-6"] = ppl_six
       featureSet["ppl-3"] = ppl_three
       featureSet["ppl-4"] = ppl_four
-
+      
       featureSet.update(self.posTags(index, article))
       return featureSet
 
@@ -131,38 +128,58 @@ class LogRegModel:
       f = self.featSelect.transform(f)
       return int(self.model.predict(f)[0])
 
-def ppl_wrangling(sents, sent_ppl):
-  logprob_total = 0.0
+def ppl_wrangling(sents, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl):
   words_total = 0.0
   oovs_total = 0.0
   sents_total = 0.0
+  logprob3_total = 0.0
+  logprob4_total = 0.0
+  logprob5_total = 0.0
+  logprob6_total = 0.0
   for sent in sents:
     #print sent
     sents_total += 1
-    for ppl in sent_ppl:
-      #print ppl.split("\n")[0]
+    for i in range(0, len(threegram_sent_ppl)):
+      ppl = threegram_sent_ppl[i]
       if ppl.split("\n")[0] == sent.strip():
-        logprob = re.search(r'logprob= -?\d*\.?\d*', ppl.split("\n")[2])
-        logprob_total += float(logprob.group().split('=')[1])
-        words = re.search(r'\d* words', ppl.split("\n")[1])
+
+        words = re.search(r'\d* words', threegram_sent_ppl[i].split("\n")[1])
         words_total += float(words.group().split()[0])
-        oovs = re.search(r'\d* OOVs', ppl.split("\n")[1])
+        oovs = re.search(r'\d* OOVs', threegram_sent_ppl[i].split("\n")[1])
         oovs_total += float(oovs.group().split()[0])
+
+        logprob3 = re.search(r'logprob= -?\d*\.?\d*', threegram_sent_ppl[i].split("\n")[2])
+        logprob3_total += float(logprob3.group().split('=')[1])
+
+        logprob4 = re.search(r'logprob= -?\d*\.?\d*', fourgram_sent_ppl[i].split("\n")[2])
+        logprob4_total += float(logprob4.group().split('=')[1])
+
+
+        logprob5 = re.search(r'logprob= -?\d*\.?\d*', fivegram_sent_ppl[i].split("\n")[2])
+        logprob5_total += float(logprob5.group().split('=')[1])
+
+
+        logprob6 = re.search(r'logprob= -?\d*\.?\d*', sixgram_sent_ppl[i].split("\n")[2])
+        logprob6_total += float(logprob6.group().split('=')[1])
+
         break
-  doc_ppl = 10.0 ** (-logprob_total/(words_total-oovs_total+sents_total))
-  return doc_ppl
+  doc3_ppl = 10.0 ** (-logprob3_total/(words_total-oovs_total+sents_total))
+  doc4_ppl = 10.0 ** (-logprob4_total/(words_total-oovs_total+sents_total))
+  doc5_ppl = 10.0 ** (-logprob5_total/(words_total-oovs_total+sents_total))
+  doc6_ppl = 10.0 ** (-logprob6_total/(words_total-oovs_total+sents_total))
+  return doc3_ppl, doc4_ppl, doc5_ppl, doc6_ppl
 
 def ngram_ppls(filename):
-  command3gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + filename + " -order 3 -lm ngram/LM-train-100MW.3grambin.lm -debug 1"
+  command3gram =  "ngram/lm/bin/macosx/ngram -ppl " + filename + " -order 3 -lm ngram/LM-train-100MW.3grambin.lm -debug 1"
   output3gram = subprocess.check_output(command3gram, shell=True)
   threegram_sent_ppl = output3gram.split("\n\n")
-  command4gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + filename + " -order 4 -lm ngram/LM-train-100MW.4grambin.lm -debug 1"
+  command4gram =  "ngram/lm/bin/macosx/ngram -ppl " + filename + " -order 4 -lm ngram/LM-train-100MW.4grambin.lm -debug 1"
   output4gram = subprocess.check_output(command4gram, shell=True)
   fourgram_sent_ppl = output4gram.split("\n\n")
-  command5gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + filename + " -order 5 -lm ngram/LM-train-100MW.5grambin.lm -debug 1"
+  command5gram =  "ngram/lm/bin/macosx/ngram -ppl " + filename + " -order 5 -lm ngram/LM-train-100MW.5grambin.lm -debug 1"
   output5gram = subprocess.check_output(command5gram, shell=True)
   fivegram_sent_ppl = output5gram.split("\n\n")
-  command6gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + filename + " -order 6 -lm ngram/LM-train-100MW.6grambin.lm -debug 1"
+  command6gram =  "ngram/lm/bin/macosx/ngram -ppl " + filename + " -order 6 -lm ngram/LM-train-100MW.6grambin.lm -debug 1"
   output6gram = subprocess.check_output(command6gram, shell=True)
   sixgram_sent_ppl = output6gram.split("\n\n")
   return threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl
@@ -180,13 +197,13 @@ def main():
 
   train_labels = [x.strip() for x in train_labels]
   model = LogRegModel()
-  #trainSyntaxFeats = trainSyntax.load()
+  trainSyntaxFeats = trainSyntax.load()
   #trainBagOfWordsFeats = bagOfWords.load('trainingSet.dat')
 
   for i in range(0, len(train_data)):
     print "sent number", i, datetime.now() - start 
-    #feats = trainSyntaxFeats[i]
-    feats = {}
+    feats = trainSyntaxFeats[i]
+    #feats = {}
     #feats.update(trainBagOfWordsFeats[i])
     #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
@@ -205,12 +222,12 @@ def main():
   dev_labels = [x.strip() for x in dev_labels]
   correct_preds = 0
   
-  #devSyntaxFeats = devtestSyntax.generate(dev_filename)
+  devSyntaxFeats = devtestSyntax.generate(dev_filename)
   #devbagOfWordsFeats = bagOfWords.load('developmentSet.dat')
 
   for i in range(0, len(dev_data)):
-    feats = {}
-    #feats = devSyntaxFeats[i]
+    #feats = {}
+    feats = devSyntaxFeats[i]
     #feats.update(devbagOfWordsFeats[i])
 
     pred = model.predict(dev_data[i], feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
