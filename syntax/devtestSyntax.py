@@ -72,7 +72,7 @@ def generate(datFilename, useCached = True):
     procFilenamesub = procFilename.replace("syntax/", "")
     synfeatsfilename = "syntax/syn_feats_{0}.pkl".format(procFilenamesub.replace(".txt", ""))
     synScoreFilename = "syntax/syn_scores_{0}.pkl".format(procFilenamesub.replace(".txt", ""))
-    if useCached and not os.path.isfile(synfeatsfilename):
+    if not useCached or not os.path.isfile(synfeatsfilename):
 
         with open(inputfile, 'w') as inputF:
             proc = subprocess.Popen(["java", "-cp", "syntax/stanford-parser-full-2014-10-31/stanford-parser.jar", "edu.stanford.nlp.parser.lexparser.LexicalizedParser", "syntax/stanford-parser-full-2014-10-31/englishPCFG.ser.gz", procFilename], stdout=inputF)
