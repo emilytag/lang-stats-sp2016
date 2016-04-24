@@ -24,7 +24,7 @@ def load(file_name):
 	## 
 	feats = []
 	for i, doc in enumerate(docs):
-		print i
+		print "bow", i
 		row = X_tf.getrow(i)
 		vals = {"BOW_"+str(i):row[0,i] for i in xrange(row.shape[1])}
 		feats.append(vals)
