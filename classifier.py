@@ -21,6 +21,7 @@ import re
 from _collections import defaultdict
 from datetime import datetime
 
+currTimestamp = None
 class LogRegModel:
     def __init__(self):
       self.model = LogisticRegression()
@@ -46,18 +47,18 @@ class LogRegModel:
       featureSet["uniquewords"] = len(set(articleWords))/len(articleWords)
       featureSet.update(feats)
 
-      try:
-        sents = [x for x in article.split("\n") if len(x) > 1]
-        ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
-        ppl_six = ppl_wrangling(sents, sixgram_sent_ppl)
-        ppl_three = ppl_wrangling(sents, threegram_sent_ppl)
-        ppl_four = ppl_wrangling(sents, fourgram_sent_ppl)
-        featureSet["ppl-5"] = ppl_five
-        featureSet["ppl-6"] = ppl_six
-        featureSet["ppl-3"] = ppl_three
-        featureSet["ppl-4"] = ppl_four
-      except:
-          pass
+#       try:
+#         sents = [x for x in article.split("\n") if len(x) > 1]
+#         ppl_five = ppl_wrangling(sents, fivegram_sent_ppl)
+#         ppl_six = ppl_wrangling(sents, sixgram_sent_ppl)
+#         ppl_three = ppl_wrangling(sents, threegram_sent_ppl)
+#         ppl_four = ppl_wrangling(sents, fourgram_sent_ppl)
+#         featureSet["ppl-5"] = ppl_five
+#         featureSet["ppl-6"] = ppl_six
+#         featureSet["ppl-3"] = ppl_three
+#         featureSet["ppl-4"] = ppl_four
+#       except:
+#           pass
 
       featureSet.update(self.posTags(index, article))
       return featureSet
@@ -106,8 +107,10 @@ class LogRegModel:
       usePreloaded = False
       if (not usePreloaded):
           featSelectFilename = "featselect_{0}.pkl".format(datetime.now())
-          with open(featSelectFilename, 'wb') as featSelectF:
+          vecFilename = "vec_{0}.pkl".format(datetime.now())
+          with open(featSelectFilename, 'wb') as featSelectF, open(vecFilename, 'wb') as vecF:
               pickle.dump(self.featSelect, featSelectF)
+              pickle.dump(self.vec, vecF)
       else:
           with open("featselect_2016-04-23 14:07:16.366972.pkl", 'rb') as featselectF:
               self.featSelect = pickle.load(featselectF)
@@ -125,6 +128,9 @@ class LogRegModel:
           featlist.append(feat)
       for feat in sorted(featlist):
         print("Selected feature:{0}".format(feat))
+      currTimestamp = datetime.now()
+      with open("picked_feats_{0}.pkl".format(currTimestamp), "wb") as picklefile:
+        pickle.dump(sorted(featlist), picklefile, protocol=2)
 
     def predict(self, article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl):
       features = self.extract_features(article, feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
@@ -178,8 +184,8 @@ def ngram_ppls(filename):
 
 def main():
   start = datetime.now()
-  train_data = open('trainingSetAug.txt', 'r').read()
-  train_labels = open('trainingSetAugLabel.txt', 'r').readlines()
+  train_data = open('trainingSet.dat', 'r').read()
+  train_labels = open('trainingSetLabels.dat', 'r').readlines()
   train_data = train_data.split('~~~~~')[1:]
   ngram_file = open('ngram_file_train.txt', 'w')
 
@@ -189,7 +195,7 @@ def main():
   fourgram_sent_ppl =[]
   fivegram_sent_ppl=[]
   sixgram_sent_ppl = []  
-  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_train.txt')
+  #threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_train.txt')
 
   train_labels = [x.strip() for x in train_labels]
   model = LogRegModel()
@@ -232,7 +238,7 @@ def main():
   fourgram_sent_ppl =[]
   fivegram_sent_ppl=[]
   sixgram_sent_ppl = []  
-  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
+  #threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
 
   #dev_labels = [x.strip() for x in dev_labels]
   correct_preds = 0
@@ -249,8 +255,12 @@ def main():
     if (len(dev_labels) > 0):
         if pred == int(dev_labels[i]):
           correct_preds += 1
-  if (len(dev_labels) > 0):         
-      print "model accuracy:", float(correct_preds)/len(dev_labels)
+  if (len(dev_labels) > 0):  
+      with open("results.txt", "a+") as resfile:
+          resfile.write("Accuracy:{0},FeatSet:{1}".format( float(correct_preds)/len(dev_labels), currTimestamp))       
+      print ("model accuracy:", float(correct_preds)/len(dev_labels))
 
+
+#for i in range (0, 5):
 main()
 #trainSyntax.generate()
