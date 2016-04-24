@@ -202,16 +202,21 @@ def main():
     #feats.update(trainBagOfWordsFeats[i])
     #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats, i, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
+    if (i % 50 == 0):
+        print("Articles processed:{0}".format(i))
   with open("pos_tags.pkl", "wb") as postagsfile:
       pickle.dump(model.posTagsDict, postagsfile)
   model.fitModel()
   dev_filename = 'developmentSet.dat'
-  if not sys.stdin.isatty():
-
+  takeFromStdin = False
+  dev_labels = []
+  if not takeFromStdin:
+      
       dev_data = open(dev_filename, 'r').read()
-      dev_labels = open('developmentSetLabels.dat', 'r').readlines()
+      dev_labels = [x.strip() for x in open('developmentSetLabels.dat', 'r').readlines()]
       dev_data = dev_data.split('~~~~~')[1:]
   else:
+      print("Taken from stdin")
       dev_filename = "testSet.dat"
       dev_data = sys.stdin.read()
       
@@ -229,7 +234,7 @@ def main():
   sixgram_sent_ppl = []  
   threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
 
-  dev_labels = [x.strip() for x in dev_labels]
+  #dev_labels = [x.strip() for x in dev_labels]
   correct_preds = 0
   
   devSyntaxFeats = devtestSyntax.generate(dev_filename)
@@ -241,9 +246,11 @@ def main():
 
     pred, prob0, prob1 = model.predict(dev_data[i], feats, threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl)
     print("{0} {1} {2}".format(prob0, prob1, pred))
-    if pred == int(dev_labels[i]):
-      correct_preds += 1
-  print "model accuracy:", float(correct_preds)/len(dev_labels)
+    if (len(dev_labels) > 0):
+        if pred == int(dev_labels[i]):
+          correct_preds += 1
+  if (len(dev_labels) > 0):         
+      print "model accuracy:", float(correct_preds)/len(dev_labels)
 
 main()
 #trainSyntax.generate()
