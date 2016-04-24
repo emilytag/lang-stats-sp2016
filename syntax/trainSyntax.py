@@ -46,10 +46,11 @@ def buildSubtrees(tree):
 
 
 
-def generate():
+def generate(veroveride = ver):
+    ver = veroveride
     features = []
     scores = []
-    with open("syntax/output_log_{0}.txt".format(ver), "w") as logF, open(featureFilename.format(ver), "wb")  as synFile, open(scoreFilename.format(ver), "wb")  as scoresFile, open('syntax/zpar_train.txt') as zparFile:
+    with open("syntax/output_log_{0}.txt".format(ver), "w") as logF, open(featureFilename.format(ver), "wb")  as synFile, open(scoreFilename.format(ver), "wb")  as scoresFile, open("syntax/zpar_{0}.txt".format(ver)) as zparFile:
         for l in zparFile:
             if (l == "(NP (NNP ENDOFDOC) (. .))\n"):
                 if (len(features) > 0):
@@ -81,7 +82,8 @@ def generate():
     
     pass
 
-def load():
+def load(veroveride = ver):
+    ver = veroveride
     feats = []
     with open(featureFilename.format(ver), 'rb')  as synFile, open(scoreFilename.format(ver), 'rb')  as scoresFile:
         features = pickle.load(synFile)
