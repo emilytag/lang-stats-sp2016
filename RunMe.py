@@ -253,12 +253,12 @@ def main():
   fourgram_sent_ppl =[]
   fivegram_sent_ppl=[]
   sixgram_sent_ppl = []  
-  #threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
+  threegram_sent_ppl, fourgram_sent_ppl, fivegram_sent_ppl, sixgram_sent_ppl = ngram_ppls('ngram_file_devtest.txt')
 
   dev_labels = [x.strip() for x in dev_labels]
   correct_preds = 0
   
-  devSyntaxFeats = devtestSyntax.generate(dev_filename)
+  devSyntaxFeats = devtestSyntax.generate(dev_filename, useCached =False)
   for i in range(0, len(dev_data)):
     feats = devSyntaxFeats[i]
 
