@@ -36,18 +36,21 @@ class LogRegModel:
       featureSet = {}
       
       articleWords = article.replace("<s>", "").replace("</s>", "").split()
-      featureSet["articlelen"] = len(articleWords)
-      fx_words = [word for word in articleWords if word.lower() in stopwords.words('english')]
-      featureSet["fxwordcount"] = len(fx_words)/len(articleWords)
-      non_words = [word for word in articleWords if word.isalpha() != True]
-      featureSet["nonwordcount"] = len(non_words)/len(articleWords)
-      content_words = [word for word in articleWords if word.lower() not in stopwords.words('english')]
-      featureSet["contentwordcount"] = len(content_words)/len(articleWords)
-      featureSet["uniquewords"] = len(set(articleWords))/len(articleWords)
-      featureSet.update(feats)
-      temp_output_file = open('test_sent.txt', "w")
-      temp_output_file.write(article.strip()+"\n")
-      temp_output_file.close()
+      try:
+          featureSet["articlelen"] = len(articleWords)
+          fx_words = [word for word in articleWords if word.lower() in stopwords.words('english')]
+          featureSet["fxwordcount"] = len(fx_words)/len(articleWords)
+          non_words = [word for word in articleWords if word.isalpha() != True]
+          featureSet["nonwordcount"] = len(non_words)/len(articleWords)
+          content_words = [word for word in articleWords if word.lower() not in stopwords.words('english')]
+          featureSet["contentwordcount"] = len(content_words)/len(articleWords)
+          featureSet["uniquewords"] = len(set(articleWords))/len(articleWords)
+          featureSet.update(feats)
+          temp_output_file = open('test_sent.txt', "w")
+          temp_output_file.write(article.strip()+"\n")
+          temp_output_file.close()
+      except:
+          pass
       
       try:
           command6gram =  "ngram/lm/bin/macosx-m64/ngram -ppl " + 'test_sent.txt' + " -order 6 -lm ngram/LM-train-100MW.6gram.lm"
@@ -141,21 +144,20 @@ class LogRegModel:
 
 def main():
   start = datetime.now()
-  train_data = open('trainingSet.dat', 'r').read()
-  train_labels = open('trainingSetLabels.dat', 'r').readlines()
+  train_data = open('trainingSetAug.txt', 'r').read()
+  train_labels = open('trainingSetAugLabel.txt', 'r').readlines()
   train_data = train_data.split('~~~~~')[1:]
   train_labels = [x.strip() for x in train_labels]
   model = LogRegModel()
   trainSyntaxFeats = trainSyntax.load()
   for i in range(0, len(train_data)):
-    print "sent number", i, datetime.now() - start 
+    #print "sent number", i, datetime.now() - start 
     feats = trainSyntaxFeats[i]
 
     #Can add more features to feats object if more precomputed features are added
     model.learn(train_data[i], train_labels[i], feats, i)
-  if (not os.path.isfile("pos_tags.pkl") ):
-      with open("pos_tags.pkl", "wb") as postagsfile:
-          pickle.dump(model.posTagsDict, postagsfile)
+  with open("pos_tags.pkl", "wb") as postagsfile:
+      pickle.dump(model.posTagsDict, postagsfile)
   model.fitModel()
   dev_filename = 'developmentSet.dat'
   dev_data = open(dev_filename, 'r').read()

@@ -90,7 +90,7 @@ def buildSubtrees(tree):
 def readfile(docFilename):
     docs = []
     count = 0
-    with open(docFilename) as docfile, open('trainingSet.txt', 'w') as trainingF:
+    with open(docFilename) as docfile, open('trainingSetAug_parser.txt', 'w') as trainingF:
         
         for line in docfile:
             line = line.strip()
@@ -104,5 +104,5 @@ def readfile(docFilename):
     print(count)
     return docs
 if __name__ == '__main__':
-    docs =  readfile('trainingSet.dat')
+    docs =  readfile('../trainingSetAug.txt')
 
